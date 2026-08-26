@@ -11,7 +11,7 @@ interface Props {
   analysisId: string;
   lockedPayload: string;
   lockedSuggestionCount: number;
-  onUnlocked: (result: any) => void;
+  onUnlocked: (result: any, rawText: string) => void;
 }
 
 export function PaywallCard({
@@ -36,7 +36,7 @@ export function PaywallCard({
       setError(message);
       throw new Error(message);
     }
-    onUnlocked(data.result);
+    onUnlocked(data.result, data.rawText);
   }
 
   return (

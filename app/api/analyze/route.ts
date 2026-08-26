@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuid } from "uuid";
-import { extractText, detectFormattingRisks } from "@/lib/extractText";
+import { extractText, detectFormattingRisks, computeParseQuality } from "@/lib/extractText";
 import { analyzeResumeWithClaude } from "@/lib/gemini";
 import { encryptPayload } from "@/lib/crypto";
 import { jobDescriptionSchema } from "@/lib/schemas";
@@ -10,6 +10,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const FREE_SUGGESTION_COUNT = 2;
+const RAW_TEXT_PREVIEW_CHARS = 600;
 
 export async function POST(req: NextRequest) {
   try {
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest) {
     }
 
     const formattingRisks = detectFormattingRisks(resumeText);
+    const { score: parseQualityScore, flags: parseFlags } = computeParseQuality(resumeText);
 
     const result: AnalysisResult = await analyzeResumeWithClaude(
       resumeText,
@@ -82,8 +84,9 @@ export async function POST(req: NextRequest) {
 
     const analysisId = uuid();
 
-    // Full result, locked. Only decrypted server-side after payment verification.
-    const lockedPayload = encryptPayload({ analysisId, result });
+    // Full result + full raw resume text, locked. Only decrypted server-side
+    // after the (currently demo) unlock flow — see app/api/unlock/route.ts.
+    const lockedPayload = encryptPayload({ analysisId, result, rawText: resumeText });
 
     // Public response: everything EXCEPT suggestions beyond the free count,
     // missingKeywords, and formattingIssues detail — those are the paywalled value.
@@ -102,6 +105,14 @@ export async function POST(req: NextRequest) {
       totalMissingKeywordCount: result.missingKeywords?.length ?? 0,
       lockedPayload,
       role: result.role,
+      // "ATS Parse Preview" feature: quality score + flags are free (they're a
+      // hook), the full raw text is capped here and unlocked via /api/unlock.
+      parsePreview: {
+        parseQualityScore,
+        flags: parseFlags,
+        rawTextPreview: resumeText.slice(0, RAW_TEXT_PREVIEW_CHARS),
+        rawTextTruncated: resumeText.length > RAW_TEXT_PREVIEW_CHARS,
+      },
     });
   } catch (err: any) {
     console.error("[/api/analyze] error:", err);

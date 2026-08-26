@@ -12,7 +12,8 @@ import { SuggestionList, FormattingIssuesList } from "@/components/SuggestionLis
 import { PaywallCard } from "@/components/PaywallCard";
 import { JobsList } from "@/components/JobsList";
 import { ExportReport } from "@/components/ExportReport";
-import { AnalysisResult, JobListing } from "@/types";
+import { ParsePreview } from "@/components/ParsePreview";
+import { AnalysisResult, JobListing, ParsePreview as ParsePreviewType } from "@/types";
 
 type Stage = "landing" | "scanning" | "results";
 
@@ -28,6 +29,7 @@ export default function Home() {
   const [totalSuggestionCount, setTotalSuggestionCount] = useState(0);
   const [totalMissingKeywordCount, setTotalMissingKeywordCount] = useState(0);
   const [unlocked, setUnlocked] = useState(false);
+  const [parsePreview, setParsePreview] = useState<ParsePreviewType | null>(null);
 
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [jobsLoading, setJobsLoading] = useState(false);
@@ -52,6 +54,7 @@ export default function Home() {
       setLockedPayload(data.lockedPayload);
       setTotalSuggestionCount(data.totalSuggestionCount);
       setTotalMissingKeywordCount(data.totalMissingKeywordCount);
+      setParsePreview(data.parsePreview);
       setUnlocked(false);
       setStage("results");
     } catch (e: any) {
@@ -60,8 +63,9 @@ export default function Home() {
     }
   }
 
-  function handleUnlocked(fullResult: AnalysisResult) {
+  function handleUnlocked(fullResult: AnalysisResult, rawText: string) {
     setResult(fullResult);
+    setParsePreview((prev) => (prev ? { ...prev, rawText } : prev));
     setUnlocked(true);
   }
 
@@ -95,6 +99,7 @@ export default function Home() {
     setAnalysisId(null);
     setLockedPayload(null);
     setUnlocked(false);
+    setParsePreview(null);
     setJobs([]);
     setJobsFetched(false);
     setError(null);
@@ -179,7 +184,7 @@ export default function Home() {
               exit={{ opacity: 0 }}
               className="space-y-10 pt-4"
             >
-              <div id="report-capture" className="space-y-10">
+              <div className="space-y-10">
                 {/* Score overview */}
                 <div className="grid gap-8 md:grid-cols-[auto,1fr] md:items-center">
                   <ScoreGauge score={result.score} />
@@ -191,6 +196,17 @@ export default function Home() {
                     <SectionScores scores={result.sectionScores} />
                   </div>
                 </div>
+
+                {/* ATS Parse Preview — new standout feature */}
+                {parsePreview && (
+                  <ParsePreview
+                    parseQualityScore={parsePreview.parseQualityScore}
+                    flags={parsePreview.flags}
+                    rawText={unlocked && parsePreview.rawText ? parsePreview.rawText : parsePreview.rawTextPreview}
+                    truncated={parsePreview.rawTextTruncated}
+                    unlocked={unlocked}
+                  />
+                )}
 
                 {/* Keywords */}
                 <div className="panel rounded-xl p-6">
@@ -236,9 +252,9 @@ export default function Home() {
                 />
               )}
 
-              {unlocked && (
+              {unlocked && parsePreview?.rawText && (
                 <div className="flex justify-center">
-                  <ExportReport targetId="report-capture" />
+                  <ExportReport result={result} rawText={parsePreview.rawText} />
                 </div>
               )}
 
