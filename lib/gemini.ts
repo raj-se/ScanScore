@@ -38,14 +38,28 @@ Respond with ONLY a single valid JSON object, no markdown fences, no preamble, m
       "category": "keywords"|"formatting"|"structure"|"experience"|"skills"
     }
   ],
-  "formattingIssues": [ { "issue": string, "risk": "high"|"medium"|"low" } ]
+  "formattingIssues": [ { "issue": string, "risk": "high"|"medium"|"low" } ],
+  "bulletRewrites": [
+    {
+      "id": string (short slug, e.g. "rewrite-bullet-1"),
+      "before": string (copied VERBATIM from the resume text — an actual weak bullet point, unedited),
+      "after": string (a stronger rewrite of that SAME bullet — same underlying fact, tighter phrasing, a strong action verb, and job-description keywords woven in naturally),
+      "reason": string (1 sentence on what changed and why it scores better with an ATS + recruiter)
+    }
+  ],
 }
 
 Rules:
 - Provide 6 to 9 suggestions, ordered by impact (high first).
 - Provide 8 to 15 matchedKeywords and 5 to 12 missingKeywords drawn from the actual job description.
 - Base every claim on the actual resume and job description text provided. Never invent employers, titles, or numbers.
-- If the resume text looks garbled or too short, reflect that honestly in formattingIssues and lower the formatting score.`;
+- If the resume text looks garbled or too short, reflect that honestly in formattingIssues and lower the formatting score.
+- Provide 4 to 6 bulletRewrites, picking the weakest/vaguest bullets actually present in the resume text.
+- "before" MUST be an exact substring-level match of real resume content — never invent a bullet that isn't there.
+- "after" must NEVER invent metrics, numbers, employers, or facts that are not already in "before" or elsewhere
+    in the resume. If a bullet lacks a measurable result, make the rewrite more specific and keyword-aligned
+    instead of fabricating a number — and say so in "reason" (e.g. "add a real metric here if you have one").
+- Keep "after" roughly the same length as "before" (one resume bullet, not a paragraph).`;
 
 export async function analyzeResumeWithClaude(
   resumeText: string,
@@ -87,7 +101,7 @@ Analyze the resume against the job description and return the JSON object descri
       ],
       generationConfig: {
         temperature: 0.4,
-        maxOutputTokens: 4000,
+        maxOutputTokens: 6000,
         responseMimeType: "application/json",
       },
     }),

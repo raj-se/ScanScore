@@ -32,6 +32,7 @@ export interface AnalysisResult {
   };
   role: string;
   seniority: string;
+  bulletRewrites: BulletRewrite[];
 }
 
 export interface JobListing {
@@ -58,4 +59,11 @@ export interface ParsePreview {
   rawTextPreview: string;
   rawTextTruncated: boolean;
   rawText?: string; // present only after unlock (full extracted text)
+}
+
+export interface BulletRewrite {
+  id: string;
+  before: string;
+  after: string;
+  reason: string;
 }
