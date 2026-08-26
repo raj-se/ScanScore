@@ -14,6 +14,7 @@ import { JobsList } from "@/components/JobsList";
 import { ExportReport } from "@/components/ExportReport";
 import { ParsePreview } from "@/components/ParsePreview";
 import { AnalysisResult, JobListing, ParsePreview as ParsePreviewType } from "@/types";
+import { BulletRewrites } from "@/components/BulletRewrites";
 
 type Stage = "landing" | "scanning" | "results";
 
@@ -27,6 +28,7 @@ export default function Home() {
   const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [lockedPayload, setLockedPayload] = useState<string | null>(null);
   const [totalSuggestionCount, setTotalSuggestionCount] = useState(0);
+  const [totalBulletRewriteCount, setTotalBulletRewriteCount] = useState(0);
   const [totalMissingKeywordCount, setTotalMissingKeywordCount] = useState(0);
   const [unlocked, setUnlocked] = useState(false);
   const [parsePreview, setParsePreview] = useState<ParsePreviewType | null>(null);
@@ -53,6 +55,7 @@ export default function Home() {
       setAnalysisId(data.analysisId);
       setLockedPayload(data.lockedPayload);
       setTotalSuggestionCount(data.totalSuggestionCount);
+      setTotalBulletRewriteCount(data.totalBulletRewriteCount);
       setTotalMissingKeywordCount(data.totalMissingKeywordCount);
       setParsePreview(data.parsePreview);
       setUnlocked(false);
@@ -231,6 +234,23 @@ export default function Home() {
                     lockedCount={Math.max(0, totalSuggestionCount - result.suggestions.length)}
                     unlocked={unlocked}
                   />
+                </div>
+
+                  {/* Bullet rewrites */}
+                  <div>
+                    <div className="mb-4 flex items-center gap-2">
+                      <h3 className="font-display text-lg font-semibold text-mist-bright">
+                        Rewrite these bullets
+                      </h3>
+                      <span className="rounded-full bg-signal-cyan/15 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-signal-cyan">
+                        New
+                      </span>
+                    </div>
+                    <BulletRewrites
+                      visibleRewrites={result.bulletRewrites}
+                      lockedCount={Math.max(0, totalBulletRewriteCount - result.bulletRewrites.length)}
+                      unlocked={unlocked}
+                    />
                 </div>
 
                 {/* Formatting issues */}
