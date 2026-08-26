@@ -51,3 +51,11 @@ export interface AnalyzeApiResponse {
   result: AnalysisResult;
   freeSuggestionIds: string[];
 }
+
+export interface ParsePreview {
+  parseQualityScore: number;
+  flags: string[];
+  rawTextPreview: string;
+  rawTextTruncated: boolean;
+  rawText?: string; // present only after unlock (full extracted text)
+}
