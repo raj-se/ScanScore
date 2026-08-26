@@ -173,6 +173,29 @@ export function ExportReport({ result, rawText }: Props) {
         paragraph(s.detail, 9.5, COLORS.textMuted);
       });
 
+      // --- Bullet rewrites ---
+      if (result.bulletRewrites?.length) {
+        heading("Rewrite these bullets");
+        result.bulletRewrites.forEach((r, i) => {
+          ensureSpace(24);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9);
+          doc.setTextColor(...COLORS.red);
+          doc.text(`${i + 1}. BEFORE`, margin, y);
+          y += 12;
+          paragraph(r.before, 9.5, COLORS.textMuted);
+
+          ensureSpace(16);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9);
+          doc.setTextColor(...COLORS.teal);
+          doc.text("AFTER", margin, y);
+          y += 12;
+          paragraph(r.after, 9.5, COLORS.textDark);
+          paragraph(r.reason, 8.5, COLORS.textMuted);
+        });
+      }
+
       // --- Formatting issues ---
       if (result.formattingIssues?.length) {
         heading("Formatting risk report");
