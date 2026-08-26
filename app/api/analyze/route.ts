@@ -11,6 +11,7 @@ export const maxDuration = 60;
 
 const FREE_SUGGESTION_COUNT = 2;
 const RAW_TEXT_PREVIEW_CHARS = 600;
+const FREE_BULLET_REWRITE_COUNT = 1;
 
 export async function POST(req: NextRequest) {
   try {
@@ -77,6 +78,7 @@ export async function POST(req: NextRequest) {
       return weight[a.impact] - weight[b.impact];
     });
     result.suggestions = sortedSuggestions;
+    result.bulletRewrites = result.bulletRewrites ?? [];
 
     const freeSuggestionIds = sortedSuggestions
       .slice(0, FREE_SUGGESTION_COUNT)
@@ -88,11 +90,13 @@ export async function POST(req: NextRequest) {
     // after the (currently demo) unlock flow — see app/api/unlock/route.ts.
     const lockedPayload = encryptPayload({ analysisId, result, rawText: resumeText });
 
-    // Public response: everything EXCEPT suggestions beyond the free count,
-    // missingKeywords, and formattingIssues detail — those are the paywalled value.
+    // Public response: everything EXCEPT suggestions/bullet rewrites beyond the
+    // free count, missingKeywords, and formattingIssues detail — those are the
+    // paywalled value.
     const freePreview: AnalysisResult = {
       ...result,
       suggestions: sortedSuggestions.slice(0, FREE_SUGGESTION_COUNT),
+      bulletRewrites: result.bulletRewrites.slice(0, FREE_BULLET_REWRITE_COUNT),
       missingKeywords: result.missingKeywords?.slice(0, 3) ?? [],
       formattingIssues: [],
     };
@@ -103,6 +107,7 @@ export async function POST(req: NextRequest) {
       freeSuggestionIds,
       totalSuggestionCount: sortedSuggestions.length,
       totalMissingKeywordCount: result.missingKeywords?.length ?? 0,
+      totalBulletRewriteCount: result.bulletRewrites.length,
       lockedPayload,
       role: result.role,
       // "ATS Parse Preview" feature: quality score + flags are free (they're a
