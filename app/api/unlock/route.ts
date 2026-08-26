@@ -34,9 +34,11 @@ export async function POST(req: NextRequest) {
 
     const { analysisId, lockedPayload } = parsed.data;
 
-    const decrypted = decryptPayload<{ analysisId: string; result: AnalysisResult }>(
-      lockedPayload
-    );
+    const decrypted = decryptPayload<{
+      analysisId: string;
+      result: AnalysisResult;
+      rawText: string;
+    }>(lockedPayload);
 
     if (decrypted.analysisId !== analysisId) {
       return NextResponse.json(
@@ -48,6 +50,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       unlocked: true,
       result: decrypted.result,
+      rawText: decrypted.rawText,
     });
   } catch (err: any) {
     console.error("[/api/unlock] error:", err);
