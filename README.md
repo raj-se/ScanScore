@@ -122,6 +122,5 @@ types/                   — shared TypeScript types
 - Wire up a real payment processor (see section 4) before taking real money.
 - Persist scans in Postgres so users can revisit past reports.
 - Auth (magic link) so "my scans" works across devices.
-- Resume rewrite suggestions inline (before/after bullet points).
 - Weekly digest email of new matching jobs for a saved resume.
 - Support LinkedIn job data alongside Adzuna.
